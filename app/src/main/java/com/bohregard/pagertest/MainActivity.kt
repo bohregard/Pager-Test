@@ -55,8 +55,6 @@ class MainActivity : ComponentActivity(), CoroutineScope {
         retrofit.create(RedditApi::class.java)
     }
 
-    private val postsPagingSource by lazy { PostsPagingSource(redditApi) }
-
     private val posts = Pager(
         config = PagingConfig(
             enablePlaceholders = false,
@@ -65,7 +63,7 @@ class MainActivity : ComponentActivity(), CoroutineScope {
             prefetchDistance = 20
         ),
         initialKey = null,
-        pagingSourceFactory = { postsPagingSource }
+        pagingSourceFactory = { PostsPagingSource(redditApi) }
     ).flow.cachedIn(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,8 +77,14 @@ class MainActivity : ComponentActivity(), CoroutineScope {
                 ) {
                     val posts = posts.collectAsLazyPagingItems()
                     debug("Testing...")
+
+                    posts.snapshot().items.forEach {
+                        debug("Post: ${it.title}")
+                    }
                     LazyColumn {
-                        items(posts) { post ->
+                        items(posts, {
+                            it.id
+                        }) { post ->
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.padding(10.dp)

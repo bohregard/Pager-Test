@@ -11,10 +11,6 @@ class PostsPagingSource(
     val redditApi: RedditApi
 ): PagingSource<String, Post>() {
 
-    companion object {
-        private var _lastFetchedPosts = listOf<Post>()
-    }
-
     override suspend fun load(params: LoadParams<String>): LoadResult<String, Post> {
         debug("Loading...${params.key}")
         try {
@@ -25,13 +21,11 @@ class PostsPagingSource(
                 null
             )
 
-            val loadResult = LoadResult.Page(
+            return LoadResult.Page(
                 data = response.posts,
-                prevKey = params.key,
+                prevKey = null,
                 nextKey = response.after,
             )
-            _lastFetchedPosts = response.posts
-            return loadResult
         } catch (e: Exception) {
             return LoadResult.Error(e)
         }
